@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 DB_NAME = "fuel_prices.db"
-USD_TO_EUR = 0.92          # приблизний фіксований курс (краще брати історичний, але для простоти)
+USD_TO_EUR = 0.92          
 GALLON_TO_LITER = 3.78541
 
 EXCEL_FILE = "/Users/dmitronevstruev/Downloads/Weekly_Oil_Bulletin_Prices_History_maticni_4web.xlsx"
@@ -21,7 +21,6 @@ def init_database():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # Видаляємо стару таблицю (тільки якщо хочеш повне очищення)
     cursor.execute("DROP TABLE IF EXISTS prices")
     conn.commit()
     
@@ -177,7 +176,7 @@ def plot_prices_with_jump_highlight(conn):
     
     countries = ["USA", "Germany", "Denmark"]
     colors = ["#e74c3c", "#3498db", "#2ecc71"]
-    y_min, y_max = 0.2, 2.6  # трохи розширили для Данії
+    y_min, y_max = 0.2, 2.6 
     
     for ax, country, color in zip(axes, countries, colors):
         country_df = df[df['country'] == country].sort_values('date').reset_index(drop=True)
@@ -187,10 +186,8 @@ def plot_prices_with_jump_highlight(conn):
             ax.set_title(country)
             continue
         
-        # Основна лінія
         ax.plot(country_df['date'], country_df['price'], color=color, linewidth=2.3, marker='o', ms=3.5)
         
-        # Обчислення стрибків
         country_df['prev_price'] = country_df['price'].shift(1)
         country_df['jump_pct'] = ((country_df['price'] - country_df['prev_price']) / country_df['prev_price']) * 100
         
@@ -205,18 +202,14 @@ def plot_prices_with_jump_highlight(conn):
             end_date = max_row['date']
             end_price = max_row['price']
             
-            # Друк для дебагу — подивись у консоль!
             print(f"{country}: max jump {pct:.1f}% від {start_price:.4f} → {end_price:.4f} €/л")
             print(f"   Дата: {start_date.date()} → {end_date.date()}")
             
-            # Червоний сегмент
             ax.plot([start_date, end_date], [start_price, end_price],
                     color='red', linewidth=6, alpha=0.85, zorder=10)
             
-            # Вертикальна лінія на дату стрибка
             ax.axvline(x=end_date, color='red', linestyle='--', alpha=0.4, linewidth=1.5)
             
-            # Мітка (з більшим зсувом для високих цін)
             label_y = end_price + 0.18 if end_price > 1.8 else end_price + 0.12
             ax.annotate(f'+{pct:.1f}%\n({end_date.date().strftime("%Y-%m")})',
                         xy=(end_date, end_price),
@@ -240,7 +233,7 @@ def plot_prices_with_jump_highlight(conn):
     
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.show()
-# ──────────────────────────────── ЗАПУСК ─────────────────────────────────────
+    
 if __name__ == "__main__":
     conn, cursor = init_database()
     
